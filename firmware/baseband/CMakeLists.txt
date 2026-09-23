@@ -383,6 +383,23 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PBTT btletx)
 
+### LoRa RX (MeshCore base radio)
+
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_lora.cpp
+)
+DeclareTargets(PLOR lora_rx)
+set(MODE_FLAGS "-O3")
+
+### LoRa TX (MeshCore base radio)
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_lora_tx.cpp
+)
+DeclareTargets(PLOT lora_tx)
+set(MODE_FLAGS "-O3")
+
 ### AIS
 
 set(MODE_CPPSRC
