@@ -17,9 +17,9 @@ LoRaTestView::LoRaTestView(NavigationView& nav)
     field_frequency.set_step(100000);
     field_frequency.set_value(869525000);
 
-    field_sf.set_selected_index(0);
-    field_bw.set_selected_index(0);
-    field_cr.set_selected_index(0);
+    field_sf.set_by_value(7);
+    field_bw.set_by_value(125000);
+    field_cr.set_by_value(5);
 
     button_rx.on_select = [this](Button&) { start_rx(); };
     button_send.on_select = [this](Button&) { send_test_packet(); };
