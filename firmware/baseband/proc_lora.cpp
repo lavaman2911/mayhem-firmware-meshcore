@@ -1321,7 +1321,7 @@ bool LoRaProcessor::sf11_try_decode() {
 void LoRaProcessor::execute_sf11(const buffer_c8_t& buffer) {
     // buffer_t has const members, so the second stage cannot be assigned over the first.
     const auto d8 = decim8_.execute(buffer, decim_buffer);
-    const auto result = bw125_ ? decim2_.execute(d8, decim_buffer2) : d8;
+    const auto d125 = (bw125_ || bw62500_) ? decim2_.execute(d8, decim_buffer2) : d8;\n    const auto result = bw62500_ ? decim62_.execute(d125, decim_buffer3) : d125;
 #if SF11_DEBUG
     static uint32_t dbg_calls = 0;
     static int dbg_out_peak = 0;
@@ -1766,7 +1766,7 @@ void LoRaProcessor::configure(const LoRaConfigureMessage& msg) {
     // BW125 joins the streaming path through a second /2 decimation stage, and SF12
     // through generating its reference rather than storing it - 4096 samples per symbol
     // do not fit the ref/fft/window layout otherwise.
-    bw125_ = (bandwidth == 125000 && spreading_factor >= 7 && spreading_factor <= 11);
+    bw62500_ = (bandwidth == 62500 && spreading_factor >= 7 && spreading_factor <= 11);\n    bw125_ = (bandwidth == 125000 && spreading_factor >= 7 && spreading_factor <= 11);
     // SF12 is BUILT but not yet ENABLED, and the reason is a timing budget, not the
     // memory one that is now solved. At 4096 samples a demod takes exactly one symbol
     // of wall time, and RESOLVE runs three of them to settle the half-symbol ambiguity.
@@ -1785,9 +1785,9 @@ void LoRaProcessor::configure(const LoRaConfigureMessage& msg) {
     // (test_lora_ref.cpp), the chunked dechirp, the layout, and an offline receiver that
     // decodes real air (tools/lora_bench/sf12_off.py).
     sf11_mode_ = (spreading_factor >= 7 && spreading_factor <= 11 &&
-                  (bandwidth == 250000 || bandwidth == 125000));
+                  (bandwidth == 250000 || bandwidth == 125000 || bandwidth == 62500));
     if (sf11_mode_) {
-        sf11_out_per_buf_ = bw125_ ? 128u : 256u;
+        sf11_out_per_buf_ = bw62500_ ? 64u : (bw125_ ? 128u : 256u);
         sf11_sps_ = 1u << spreading_factor;            // 256/512/1024/2048
         sf11_stages_ = spreading_factor;               // log2(sps) FFT butterfly stages
         sf11_nsteps_ = sf11_sps_ / sf11_out_per_buf_;  // demod steps = buffers/symbol
@@ -1838,7 +1838,7 @@ void LoRaProcessor::configure(const LoRaConfigureMessage& msg) {
         // (Up matched the dead on-air sharpness of 0.004).  scale = default.
         decim8_.configure(taps_200k_decim_0.taps, dsp::decimate::c8_to_c32_sat_scalar,
                           dsp::decimate::FIRC8xR16x24FS4Decim8::Shift::Down);
-        if (bw125_) decim2_.configure(taps_125k_decim_2.taps);
+        if (bw125_ || bw62500_) decim2_.configure(taps_125k_decim_2.taps);\n        if (bw62500_) decim62_.configure(taps_125k_decim_2.taps);
         sf11_recompute_ref(0.0f);  // base dechirp for HUNT (recomputed w/ CFO at SFD)
         win_w_ = 0;
         sf11_read_ = 0;

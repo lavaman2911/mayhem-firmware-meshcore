@@ -14,8 +14,8 @@ LoRaTestView::LoRaTestView(NavigationView& nav)
     add_children({&field_frequency, &field_sf, &field_bw, &field_cr,
                   &button_rx, &button_send, &text_status, &text_packet});
 
-    field_frequency.set_step(100000);
-    field_frequency.set_value(869525000);
+    field_frequency.set_step(1000);
+    field_frequency.set_value(869618000);
 
     field_sf.set_by_value(7);
     field_bw.set_by_value(125000);
@@ -32,7 +32,7 @@ void LoRaTestView::focus() {
 }
 
 void LoRaTestView::apply_config() {
-    receiver_model.set_target_frequency(receiver_model.target_frequency());
+    receiver_model.set_target_frequency(field_frequency.value());
     receiver_model.set_sampling_rate(2'048'000);
     receiver_model.set_baseband_bandwidth(500'000);
 
