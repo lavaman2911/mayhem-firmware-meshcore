@@ -29,6 +29,62 @@ jobs:
       - name: Update submodules
         run: git submodule update --init --recursive
 
+      - name: Apply MeshCore PHY-test RX fix
+        run: |
+          python3 << 'PY'
+          from pathlib import Path
+          path = Path("firmware/baseband/proc_lora.cpp")
+          text = path.read_text()
+          old = """                    if (L < 4) continue;
+                    const uint32_t dest = static_cast<uint32_t>(frame[0]) |
+                                          (static_cast<uint32_t>(frame[1]) << 8) |
+                                          (static_cast<uint32_t>(frame[2]) << 16) |
+                                          (static_cast<uint32_t>(frame[3]) << 24);
+                    if (dest != 0xFFFFFFFFu && !(local_node_id_ && dest == local_node_id_))
+                        continue;"""
+          new = """                    // PHY test mode (local_node_id_==0): accept any valid explicit header.
+                    // Meshtastic filtering only when node id is set (MeshCore has no dest field).
+                    if (L < 1) continue;
+                    if (local_node_id_) {
+                        if (L < 4) continue;
+                        const uint32_t dest = static_cast<uint32_t>(frame[0]) |
+                                              (static_cast<uint32_t>(frame[1]) << 8) |
+                                              (static_cast<uint32_t>(frame[2]) << 16) |
+                                              (static_cast<uint32_t>(frame[3]) << 24);
+                        if (dest != 0xFFFFFFFFu && dest != local_node_id_)
+                            continue;
+                    }"""
+          if old in text:
+              text = text.replace(old, new, 1)
+              print("Applied dest-filter fix")
+          elif "PHY test mode (local_node_id_==0)" in text:
+              print("Dest-filter fix already present")
+          else:
+              raise SystemExit("Target dest-filter block not found in proc_lora.cpp")
+          old2 = """                if (!header_valid_ || len < 4 || len > MAX_PAYLOAD) {
+                    // corrupt header -> drop the packet (don't over-read / rebroadcast garbage)
+                    reset_rx();
+                    return;
+                }"""
+          new2 = """                const uint8_t min_len = local_node_id_ ? 4u : 1u;
+                if (!header_valid_ || len < min_len || len > MAX_PAYLOAD) {
+                    // corrupt header -> drop the packet (don't over-read / rebroadcast garbage)
+                    reset_rx();
+                    return;
+                }"""
+          if old2 in text:
+              text = text.replace(old2, new2, 1)
+              print("Applied HEADER min_len fix")
+          old3 = """                    if (!header_valid_ || len < 4 || len > MAX_PAYLOAD) continue;"""
+          new3 = """                    const uint8_t min_len = local_node_id_ ? 4u : 1u;
+                    if (!header_valid_ || len < min_len || len > MAX_PAYLOAD) continue;"""
+          if old3 in text:
+              text = text.replace(old3, new3, 1)
+              print("Applied sf11 header min_len fix")
+          path.write_text(text)
+          print("MeshCore PHY-test RX fix ready")
+          PY
+
       - name: Build Docker image
         run: docker build -t portapack-dev -f dockerfile-nogit .
 
