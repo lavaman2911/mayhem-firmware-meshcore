@@ -37,74 +37,24 @@ jobs:
           path = Path("firmware/baseband/proc_lora.cpp")
           text = path.read_text()
           if "PHY test mode (local_node_id_==0)" in text:
-              print("Dest-filter fix already present")
+              print("Already patched")
           else:
-              # Match the Meshtastic dest gate regardless of exact whitespace
-              pat = re.compile(
-                  r"if \(L < 4\) continue;\s*"
-                  r"const uint32_t dest = static_cast<uint32_t>\(frame\[0\]\) \|\s*"
-                  r"\(static_cast<uint32_t>\(frame\[1\]\) << 8\) \|\s*"
-                  r"\(static_cast<uint32_t>\(frame\[2\]\) << 16\) \|\s*"
-                  r"\(static_cast<uint32_t>\(frame\[3\]\) << 24\);\s*"
-                  r"if \(dest != 0xFFFFFFFFu && !\(local_node_id_ && dest == local_node_id_\)\)\s*"
-                  r"continue;"
-              )
-              repl = (
-                  "// PHY test mode (local_node_id_==0): accept any valid explicit header.\n"
-                  "                    // Meshtastic filtering only when node id is set (MeshCore has no dest field).\n"
-                  "                    if (L < 1) continue;\n"
-                  "                    if (local_node_id_) {\n"
-                  "                        if (L < 4) continue;\n"
-                  "                        const uint32_t dest = static_cast<uint32_t>(frame[0]) |\n"
-                  "                                              (static_cast<uint32_t>(frame[1]) << 8) |\n"
-                  "                                              (static_cast<uint32_t>(frame[2]) << 16) |\n"
-                  "                                              (static_cast<uint32_t>(frame[3]) << 24);\n"
-                  "                        if (dest != 0xFFFFFFFFu && dest != local_node_id_)\n"
-                  "                            continue;\n"
-                  "                    }"
-              )
-              new_text, n = pat.subn(repl, text, count=1)
-              if n != 1:
-                  # Debug: show nearby lines
+              needle = "if (dest != 0xFFFFFFFFu && !(local_node_id_ && dest == local_node_id_))"
+              if needle not in text:
                   idx = text.find("0xFFFFFFFFu")
-                  print("Context around 0xFFFFFFFF:")
-                  print(repr(text[max(0, idx - 200):idx + 200]) if idx >= 0 else "NOT FOUND")
-                  raise SystemExit(f"Dest-filter regex matched {n} times (need 1)")
-              text = new_text
-              print("Applied dest-filter fix")
-
-          # HEADER min length (classic path)
-          text2, n2 = re.subn(
-              r"if \(!header_valid_ \|\| len < 4 \|\| len > MAX_PAYLOAD\) \{\s*"
-              r"// corrupt header -> drop the packet[^"]*"
-              r"reset_rx\(\);\s*return;\s*\}",
-              "const uint8_t min_len = local_node_id_ ? 4u : 1u;\n"
-              "                if (!header_valid_ || len < min_len || len > MAX_PAYLOAD) {\n"
-              "                    // corrupt header -> drop the packet\n"
-              "                    reset_rx();\n"
-              "                    return;\n"
-              "                }",
-              text,
-              count=1,
-          )
-          if n2:
-              text = text2
-              print("Applied HEADER min_len fix")
-
-          # sf11 header continue
-          text3, n3 = re.subn(
-              r"if \(!header_valid_ \|\| len < 4 \|\| len > MAX_PAYLOAD\) continue;",
-              "const uint8_t min_len = local_node_id_ ? 4u : 1u;\n"
-              "                    if (!header_valid_ || len < min_len || len > MAX_PAYLOAD) continue;",
-              text,
-              count=1,
-          )
-          if n3:
-              text = text3
-              print("Applied sf11 header min_len fix")
-
-          path.write_text(text)
-          print("MeshCore PHY-test RX fix ready")
+                  print("Context:", repr(text[max(0,idx-120):idx+120]) if idx>=0 else "missing")
+                  raise SystemExit("needle not found")
+              # Replace only the if-condition line to accept all frames when local_node_id_==0
+              text = text.replace(
+                  needle,
+                  "if (local_node_id_ && dest != 0xFFFFFFFFu && dest != local_node_id_)",
+                  1,
+              )
+              path.write_text(text)
+              print("Applied dest-filter fix (MeshCore PHY test mode)")
+              # verify
+              assert "if (local_node_id_ && dest != 0xFFFFFFFFu && dest != local_node_id_)" in path.read_text()
+              print("Verified OK")
           PY
 
       - name: Build Docker image
