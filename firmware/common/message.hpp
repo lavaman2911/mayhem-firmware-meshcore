@@ -174,6 +174,9 @@ class Message {
         RxFs4Config = 116,
         FT8Packet = 117,
         FT8RxStatus = 118,
+        LoRaConfigure = 119,
+        LoRaPacket = 120,
+        LoRaRxStatus = 121,
         MAX
     };
 
