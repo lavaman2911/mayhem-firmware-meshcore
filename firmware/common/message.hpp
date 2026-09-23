@@ -2094,7 +2094,10 @@ class LoRaPacketMessage : public Message {
     uint8_t length{0};
     int8_t rssi{0};
     int16_t snr_tenths{0};
-    uint8_t crc_state{0};
+    static constexpr uint8_t CRC_UNCHECKED{0};
+    static constexpr uint8_t CRC_OK{1};
+    static constexpr uint8_t CRC_BAD{2};
+    uint8_t crc_state{CRC_UNCHECKED};
     uint8_t data[MAX_DATA]{};
 };
 
