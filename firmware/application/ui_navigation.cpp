@@ -63,6 +63,10 @@
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
 
+#ifdef PRALINE
+#include "ui_lora_test.hpp"
+#endif
+
 #include "core_control.hpp"
 #include "file.hpp"
 #include "file_reader.hpp"
@@ -98,6 +102,10 @@ const NavigationView::AppList NavigationView::appList = {
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
+
+#ifdef PRALINE
+    {"loratest", "LoRa Test", UTILITIES, Color::green(), nullptr, new ViewFactory<LoRaTestView>()},
+#endif
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
