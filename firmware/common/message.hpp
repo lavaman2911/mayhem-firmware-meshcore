@@ -2070,6 +2070,38 @@ class FlexTosendMessage : public Message {
     uint8_t msg[240] = {0};
 };
 
+// LoRa configure message (M0 -> M4)
+class LoRaConfigureMessage : public Message {
+   public:
+    constexpr LoRaConfigureMessage(uint8_t spreading_factor = 7, uint32_t bandwidth = 125000,
+                                   uint8_t coding_rate = 5, uint32_t local_node_id = 0)
+        : Message{ID::LoRaConfigure}, spreading_factor{spreading_factor}, bandwidth{bandwidth},
+          coding_rate{coding_rate}, local_node_id{local_node_id} {}
+    uint8_t spreading_factor;
+    uint32_t bandwidth;
+    uint8_t coding_rate;
+    uint32_t local_node_id;
+};
+
+// LoRa decoded packet message (M4 -> M0)
+class LoRaPacketMessage : public Message {
+   public:
+    static constexpr size_t MAX_DATA{255};
+    LoRaPacketMessage() : Message{ID::LoRaPacket} {}
+    uint8_t length{0};
+    int8_t rssi{0};
+    int16_t snr_tenths{0};
+    uint8_t crc_state{0};
+    uint8_t data[MAX_DATA]{};
+};
+
+class LoRaRxStatusMessage : public Message {
+   public:
+    constexpr LoRaRxStatusMessage(bool receiving = false)
+        : Message{ID::LoRaRxStatus}, receiving{receiving} {}
+    bool receiving;
+};
+
 class HunterConfigMessage : public Message {
    public:
     uint32_t energy_threshold{5000};
