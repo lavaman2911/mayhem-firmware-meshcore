@@ -335,6 +335,10 @@ set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto) # Add lto 
 
 list (APPEND CPPSRC ${EXTCPPSRC}) # Append external sources after setting lto flag to internal ones
 
+if(BOARD STREQUAL "PRALINE")
+	list(APPEND CPPSRC apps/ui_lora_test.cpp)
+endif()
+
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.
