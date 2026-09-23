@@ -1,0 +1,53 @@
+name: Build LoRa firmware
+
+on:
+  push:
+    branches:
+      - lora-base
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: default
+            device_name: HackRF
+            cmake_args: ""
+          - device: hpro
+            device_name: HackRF Pro
+            cmake_args: "-DBOARD=PRALINE"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Update submodules
+        run: git submodule update --init --recursive
+
+      - name: Build Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit .
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Build firmware
+        run: docker run -e VERSION_STRING=lora-test -i -v "${{ github.workspace }}:/havoc" portapack-dev ${{ matrix.cmake_args }}
+
+      - name: Package firmware
+        run: |
+          mkdir -p output
+          cp build/firmware/portapack-mayhem-firmware.bin output/portapack-mayhem-lora-${{ matrix.device }}.bin
+          if [ -f build/firmware/portapack-mayhem_OCI.ppfw.tar ]; then
+            cp build/firmware/portapack-mayhem_OCI.ppfw.tar output/portapack-mayhem-lora-${{ matrix.device }}.ppfw.tar
+          fi
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lora-firmware-${{ matrix.device }}
+          path: output/
