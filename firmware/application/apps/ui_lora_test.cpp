@@ -55,7 +55,7 @@ void LoRaTestView::send_test_packet() {
     static const uint8_t payload[] = "PORTAPACK LORA TEST";
 
     transmitter_model.set_target_frequency(field_frequency.value());
-    transmitter_model.set_sampling_rate(2'048'000);
+    transmitter_model.set_sampling_rate(2'500'000);
     transmitter_model.set_baseband_bandwidth(500'000);
     transmitter_model.enable();
 
