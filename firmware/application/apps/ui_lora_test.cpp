@@ -29,7 +29,7 @@ LoRaTestView::LoRaTestView(NavigationView& nav)
     field_lna.set_value(32);
     field_vga.set_value(20);
 
-    field_frequency.on_change = [this](rf::Frequency) { apply_config(); };
+    field_frequency.updated = [this](rf::Frequency) { apply_config(); };
     field_sf.on_change = [this](size_t, OptionsField::value_t) { start_rx(); };
     field_bw.on_change = [this](size_t, OptionsField::value_t) { start_rx(); };
     field_cr.on_change = [this](size_t, OptionsField::value_t) { start_rx(); };
