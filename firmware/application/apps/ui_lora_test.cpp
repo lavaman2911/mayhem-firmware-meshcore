@@ -32,7 +32,7 @@ void LoRaTestView::focus() {
 }
 
 void LoRaTestView::apply_config() {
-    receiver_model.set_target_frequency(field_frequency.value());
+    receiver_model.set_target_frequency(receiver_model.target_frequency());
     receiver_model.set_sampling_rate(2'048'000);
     receiver_model.set_baseband_bandwidth(500'000);
 
