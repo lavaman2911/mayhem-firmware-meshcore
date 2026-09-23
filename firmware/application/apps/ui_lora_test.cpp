@@ -52,6 +52,9 @@ void LoRaTestView::start_rx() {
 }
 
 void LoRaTestView::send_test_packet() {
+    receiver_model.disable();
+    baseband::shutdown();
+
     static const uint8_t payload[] = "PORTAPACK LORA TEST";
 
     transmitter_model.set_target_frequency(field_frequency.value());
