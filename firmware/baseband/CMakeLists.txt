@@ -383,8 +383,11 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PBTT btletx)
 
-### LoRa RX (MeshCore base radio)
-
+### LoRa RX/TX (HackRF Pro only for now)
+# HackRF One has a 1 MiB SPI image budget; the LoRa RX/TX images push the
+# combined firmware image over that limit. Keep the LoRa baseband images on
+# PRALINE (HackRF Pro) until the external-image path is integrated.
+if(BOARD STREQUAL "PRALINE")
 set(MODE_FLAGS "-Os")
 set(MODE_CPPSRC
 	proc_lora.cpp
@@ -392,13 +395,13 @@ set(MODE_CPPSRC
 DeclareTargets(PLOR lora_rx)
 set(MODE_FLAGS "-O3")
 
-### LoRa TX (MeshCore base radio)
 set(MODE_FLAGS "-Os")
 set(MODE_CPPSRC
 	proc_lora_tx.cpp
 )
 DeclareTargets(PLOT lora_tx)
 set(MODE_FLAGS "-O3")
+endif()
 
 ### AIS
 
