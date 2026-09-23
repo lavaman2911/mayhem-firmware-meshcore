@@ -4,6 +4,7 @@
 #include "ui_navigation.hpp"
 #include "ui_freq_field.hpp"
 #include "receiver_model.hpp"
+#include "radio.hpp"
 #include "message.hpp"
 
 namespace ui {
@@ -25,6 +26,9 @@ private:
                            {"SF11", 11}}};
     OptionsField field_bw{{UI_POS_X(8), UI_POS_Y(2)}, 7,
                           {{"62.5k", 62500}, {"125k", 125000}, {"250k", 250000}, {"500k", 500000}}};
+    LNAGainField field_lna{{UI_POS_X(0), UI_POS_Y(3)}};
+    VGAGainField field_vga{{UI_POS_X(9), UI_POS_Y(3)}};
+
     OptionsField field_cr{{UI_POS_X(19), UI_POS_Y(2)}, 4,
                           {{"4/5", 5}, {"4/6", 6}, {"4/7", 7}, {"4/8", 8}}};
 

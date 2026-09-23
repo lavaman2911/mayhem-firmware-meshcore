@@ -4,6 +4,7 @@
 #include "portapack.hpp"
 #include "transmitter_model.hpp"
 #include "receiver_model.hpp"
+#include "radio.hpp"
 
 using namespace portapack;
 
@@ -12,6 +13,7 @@ namespace ui {
 LoRaTestView::LoRaTestView(NavigationView& nav)
     : nav_{nav} {
     add_children({&field_frequency, &field_sf, &field_bw, &field_cr,
+                  &field_lna, &field_vga,
                   &button_rx, &button_send, &text_status, &text_packet});
 
     field_frequency.set_step(1000);
@@ -20,6 +22,8 @@ LoRaTestView::LoRaTestView(NavigationView& nav)
     field_sf.set_by_value(7);
     field_bw.set_by_value(125000);
     field_cr.set_by_value(5);
+    field_lna.set_value(32);
+    field_vga.set_value(20);
 
     button_rx.on_select = [this](Button&) { start_rx(); };
     button_send.on_select = [this](Button&) { send_test_packet(); };
@@ -34,7 +38,9 @@ void LoRaTestView::focus() {
 void LoRaTestView::apply_config() {
     receiver_model.set_target_frequency(field_frequency.value());
     receiver_model.set_sampling_rate(2'048'000);
-    receiver_model.set_baseband_bandwidth(500'000);
+    receiver_model.set_baseband_bandwidth(field_bw.selected_index_value());
+    radio::set_lna_gain(field_lna.value());
+    radio::set_vga_gain(field_vga.value());
 
     baseband::set_lora_config(
         static_cast<uint8_t>(field_sf.selected_index_value()),

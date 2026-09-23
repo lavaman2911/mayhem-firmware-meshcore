@@ -1721,6 +1721,15 @@ static constexpr fir_taps_real<16> taps_125k_decim_2 = {
     }},
 };
 
+// LoRa BW62.5: 125 kHz -> 62.5 kHz.
+static constexpr fir_taps_real<16> taps_62500_decim_2 = {
+    .low_frequency_normalized = -0.22f,
+    .high_frequency_normalized = 0.22f,
+    .transition_normalized = 0.06f,
+    .taps = {{-90, 82, 427, -58, -1742, -995, 5569, 13190,
+              13190, 5569, -995, -1742, -58, 427, 82, -90}},
+};
+
 
 // TPMS decimation filters ////////////////////////////////////////////////
 
